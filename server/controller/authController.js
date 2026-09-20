@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import transport from "../config/nodemailer.js";
+import { EMAIL_VERIFY_TEMPLATE, PASSWORD_RESET_TEMPLATE } from "../config/emailTemplate.js";
 
 
 // REGISTER
@@ -164,7 +165,7 @@ export const logout = async (req, res) => {
 
 export const sendVerifyOtp = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const userId = req.userId;
 
         if (!userId) {
             return res.json({
@@ -204,7 +205,8 @@ export const sendVerifyOtp = async (req, res) => {
             from: process.env.SENDER_EMAIL,
             to: user.email,
             subject: "Account Verification OTP",
-            text: `Your OTP is ${otp}. Verify your account using this OTP.`
+            // text: `Your OTP is ${otp}. Verify your account using this OTP.`,
+            html: EMAIL_VERIFY_TEMPLATE.replace("{{otp}}", otp).replace("{{email}}", user.email)
         };
 
         const info = await transport.sendMail(mailOption);
@@ -226,7 +228,8 @@ export const sendVerifyOtp = async (req, res) => {
 
 export const verifyEmail = async (req, res) => {
 
-    const { userId, otp } = req.body;
+    const { otp } = req.body ?? {};
+    const userId = req.userId;
 
     if (!userId || !otp) {
         return res.json({
@@ -292,7 +295,7 @@ export const isAuthenticated = async (req, res) => {
 
 // Send Password Reset OTP
 export const sendResetOTP = async (req, res) => {
-    const { email } = req.body;
+    const { email } = req.body ?? {};
 
     if (!email) {
         return res.json({
@@ -327,7 +330,9 @@ export const sendResetOTP = async (req, res) => {
             from: process.env.SENDER_EMAIL,
             to: user.email,
             subject: "Password Reset OTP",
-            text: `Your OTP for resetting your password is ${otp}. Use this OTP to proceed with resetting your password.`
+            // text: `Your OTP for resetting your password is ${otp}. Use this OTP to proceed with resetting your password.`,
+            html: PASSWORD_RESET_TEMPLATE.replace("{{otp}}", otp).replace("{{email}}", user.email)
+
         };
 
         const info = await transport.sendMail(mailOption);
@@ -353,12 +358,12 @@ export const sendResetOTP = async (req, res) => {
 // Reset User Password
 export const resetPassword = async (req, res) => {
     
-    const {email, otp, newPassword} = req.body;
+    const {email, otp, newPassword} = req.body ?? {};
 
     if(!email || !otp || !newPassword){
         return res.json({
             success: false,
-            message: error.message
+            message: 'Email, OTP, and new password are required'
         })
     }
 
@@ -373,7 +378,7 @@ export const resetPassword = async (req, res) => {
             });
         }
 
-        if(!user.resetOtp === '' || user.resetOtp !== otp){
+        if(user.resetOtp === '' || user.resetOtp !== otp){
             return res.json({
                 success: false,
                 message: 'Invalid OTP'

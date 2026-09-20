@@ -19,7 +19,9 @@ const connectDB = async () => {
         console.log("Database Connected!");
     });
 
-    await mongoose.connect(`${process.env.MONGODB_URL}/mern-auth`);
+    await mongoose.connect(process.env.MONGODB_URL, {
+        dbName: "mern-auth"
+    });
 };
 
 export default connectDB;

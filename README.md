@@ -1,6 +1,6 @@
-# MERN Auth API
+# MERN Auth
 
-A Node.js and Express authentication API backed by MongoDB. The project provides cookie-based authentication with JWTs, password hashing, email verification, and password-reset OTPs.
+A full-stack MERN authentication application with a React/Vite client and an Express API backed by MongoDB. Authentication uses JWTs stored in HTTP-only cookies, with email verification and password-reset OTP flows.
 
 ## Features
 
@@ -12,6 +12,8 @@ A Node.js and Express authentication API backed by MongoDB. The project provides
 - Password hashing with `bcryptjs`
 - MongoDB persistence with Mongoose
 - SMTP email delivery through Brevo
+- React client with protected authentication flows
+- Axios requests with credentials enabled
 
 ## Tech Stack
 
@@ -25,6 +27,12 @@ A Node.js and Express authentication API backed by MongoDB. The project provides
 ## Project Structure
 
 ```text
+client/
+├── src/
+│   ├── Components/  # Shared React components
+│   ├── context/     # Authentication context
+│   └── pages/       # Login, verification, and reset pages
+└── package.json
 server/
 ├── config/          # MongoDB and SMTP configuration
 ├── controller/      # Authentication handlers
@@ -64,7 +72,7 @@ server/
 	 NODE_ENV=development
 	 ```
 
-	 `MONGODB_URL` should contain the MongoDB server URL only. The application adds `/mern-auth` as the database name.
+	Use a MongoDB connection string, including the database name when required by your provider.
 
 4. Start the API:
 
@@ -73,6 +81,20 @@ server/
 	 ```
 
 	 The server is available at `http://localhost:4000` by default.
+
+5. Install and start the client in a second terminal:
+
+	 ```bash
+	 cd client
+	 npm install
+	 npm run dev
+	 ```
+
+	 The client is available at `http://localhost:5173` by default. Create `client/.env` if the API runs at another URL:
+
+	 ```env
+	 VITE_BACKEND_URL=http://localhost:4000
+	 ```
 
 ## API Reference
 
@@ -131,16 +153,9 @@ Clears the authentication cookie.
 
 ```http
 POST /api/auth/send-verify-otp
-Content-Type: application/json
 ```
 
-```json
-{
-	"userId": "your-user-id"
-}
-```
-
-Requires the authentication cookie. The OTP is valid for 24 hours.
+Requires the authentication cookie. The user ID is read from the authenticated JWT. The OTP is valid for 24 hours.
 
 ### Verify Email
 
@@ -151,7 +166,6 @@ Content-Type: application/json
 
 ```json
 {
-	"userId": "your-user-id",
 	"otp": "123456"
 }
 ```
@@ -161,7 +175,7 @@ Requires the authentication cookie.
 ### Check Authentication
 
 ```http
-POST /api/auth/is-auth
+GET /api/auth/is-auth
 ```
 
 Requires the authentication cookie and returns `{ "success": true }` when the JWT is valid.
@@ -227,12 +241,16 @@ When testing protected endpoints, keep cookies enabled in Postman so the JWT coo
 
 ## Available Scripts
 
-Run these commands from the `server/` directory:
+Run these commands from the relevant directory:
 
 | Command | Description |
 | --- | --- |
-| `npm install` | Install dependencies |
-| `npm start` | Start the API |
+| `cd server && npm install` | Install server dependencies |
+| `cd server && npm start` | Start the API |
+| `cd client && npm install` | Install client dependencies |
+| `cd client && npm run dev` | Start the Vite development server |
+| `cd client && npm run build` | Build the client for production |
+| `cd client && npm run lint` | Run client linting |
 
 ## License
 
